@@ -1,0 +1,13 @@
+---
+- name: print cpu numbers
+  debug: msg="disk_size===>{{ hostvars[item]['vm_disk_offering'] | regex_replace('(.*)G$','\\1') }}"
+  loop: "{{ groups['sdn'] }}"
+
+- name: Create  disk offerings 
+  local_action:
+    module: cs_disk_offering
+    name: "{{ hostvars[item]['vm_disk_offering'] }}"
+    display_text: "{{ hostvars[item]['vm_disk_offering'] }}"
+    disk_size: "{{ hostvars[item]['vm_disk_offering'] | regex_replace('(.*)G$','\\1')| int}}"
+    storage_type: shared
+  loop: "{{ groups['sdn'] }}"

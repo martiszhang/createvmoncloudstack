@@ -1,0 +1,22 @@
+---
+- name: print cpu numbers 
+  debug: msg="cpu_nmuber===>{{ hostvars[item]['vm_service_offering'] | regex_replace('(.*)C.*G$','\\1') }}"
+  loop: "{{ groups['sdn'] }}"
+
+- name: print memory 
+  debug: msg="memory===>{{ hostvars[item]['vm_service_offering'] | regex_replace('.*C(.*)G','\\1')}}"
+  loop: "{{ groups['sdn'] }}"
+
+#- name: print test
+#  debug: msg="{{ hostvars[item]['vm_service_offering'] }} == {{ hostvars[item]['vm_service_offering'] | regex_replace('(.*)C.*G$','\\1') }}  == {{ hostvars[item]['vm_service_offering'] | regex_replace('.*C(.*)G','\\1') | int * 1024 }}"
+#  loop: "{{ groups['sdn'] }}"
+- name: Create compute service offering with shared storage
+  local_action:
+    module: cs_service_offering
+    name: "{{ hostvars[item]['vm_service_offering'] }}"
+    display_text: "{{ hostvars[item]['vm_service_offering'] }}"
+    cpu_number: "{{ hostvars[item]['vm_service_offering'] | regex_replace('(.*)C.*G$','\\1') }}"
+    cpu_speed: 1
+    memory: "{{ hostvars[item]['vm_service_offering'] | regex_replace('.*C(.*)G','\\1')| int * 1024 }}"
+    storage_type: shared
+  loop: "{{ groups['sdn'] }}"

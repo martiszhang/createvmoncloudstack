@@ -1,0 +1,76 @@
+---
+- name: set cloudmonkey display format = default 
+  shell: cloudmonkey set display default 
+
+- name: get cloudstack zone info
+  shell: cloudmonkey  list zones filter=name | grep name | awk -F = '{print$2}'| awk '{print $1}' 
+  register: shellresult
+
+- name: print shellresult
+  debug: msg="{{ shellresult.stdout_lines |first  }}"
+
+- name: set var zoneinfo 
+  set_fact: zoneinfo={{ shellresult.stdout_lines |first }}
+
+- name: debug
+  debug: msg="{{ zoneinfo  }}"
+
+- name: get subnet info exclude vpc_subnet_name | first element 
+  set_fact: extra_subnets_info="{{ lookup('file','/tmp/subnetwork_info') }}"
+
+- name: debug
+  debug: msg="{{ extra_subnets_info }} "
+
+- name: create an instance 
+  cs_instance:
+    name: "{{vpc_name}}-{{ item }}"
+    display_name: "{{ vpc_name }}-{{ item }}"
+    template: "{{ template_name }}" 
+    service_offering: "{{ hostvars[item]['vm_service_offering'] }}" 
+    disk_offering: "{{ hostvars[item]['vm_disk_offering'] }}"
+    networks: "{{ hostvars[item]['vm_subnet_name'] |first }}" 
+    hypervisor: VMware
+    zone: "{{ zoneinfo }}" 
+  loop: "{{ groups['sdn'] }}" 
+  register: vminfo
+
+### set a variable list_vm_need_extra nics 
+
+- name: print list a list of vm which want extra  subnet
+#  debug: msg="{{ item }}"
+  set_fact: list_vm_need_extra_subnet="{{ list_vm_need_extra_subnet | default([]) + [ item ] }}"
+  loop: "{{ groups['sdn'] }}" 
+  when: hostvars[item]['vm_extra_nics'] is defined
+
+- name: print variable list_vm_need_extra_subnet
+  debug: msg={{ list_vm_need_extra_subnet }}
+
+- name: gather instance facts
+  cs_instance_facts:
+    name: "{{ vpc_name}}-{{ item }}"
+  loop: "{{ list_vm_need_extra_subnet }}"
+  register: vm
+
+- name: debug var vm
+  debug: msg="{{ vm.results }}"
+
+
+
+
+################################################################
+#- name: set variable list_vm_name_id_networkid
+##  debug: msg="{{ item.display_name }}=========={{ item.id }}"
+##  debug: msg="{{ item }}"
+#  set_fact: list_vm_name_id_networkid="{{ list_vm_name_id_networkid | default([]) + [{'name':item.item,'id':item.id,'networkid':hostvars[item.item]['vm_extra_nics']| map('extract', extra_subnets_info )|list }]  }}"
+#  loop: "{{ vm.results }}"
+
+#- name: debug variable list_vm_name_id_networkid
+#  debug: msg={{ list_vm_name_id_networkid }}
+#
+
+#- name: cloudmonkey add nic to vm if need
+#  shell: cloudmonkey add nictovirtualmachine networkid="{{ item.1 }}" virtualmachineid="{{ item.0.id }}"
+#  loop: "{{ list_vm_name_id_networkid  | subelements('networkid') | list}}"
+#  ignore_errors: true
+###################################################################
+

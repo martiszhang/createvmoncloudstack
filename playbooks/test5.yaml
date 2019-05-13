@@ -1,0 +1,15 @@
+---
+- hosts: 127.0.0.1
+  tasks:
+   - name: test 
+     cs_instance_nic:
+       vm: z-CloudBackboneNetwork-ProdEnv-VM-Vpp-02 
+       network: z-CloudBackboneNetwork-ProdEnv-03
+       ip_address: "10.1.3.199"
+       vpc: z-CloudBackboneNetwork-ProdEnv  
+     register: test
+
+   - name: debug
+     debug: msg="{{ test }}"
+  environment:
+    CLOUDSTACK_CONFIG: /tmp/cloudstack.ini 

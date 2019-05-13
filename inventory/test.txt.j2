@@ -1,0 +1,14 @@
+{% for i in listneed  %}
+    {% for k in listhad  %}
+        {% if i.name == k.name %}
+             {% for n in i.network_need %}
+                 {% if n in k.network_had %}
+                    {{ i.name }} {{ n }} network is ok
+                 {% else %}
+                     {{ i.name}}{{ n }} network is not ok}} 
+                 {% endif %}
+             {% endfor %}
+        {% endif %} 
+    {% endfor %}
+{% endfor %}
+

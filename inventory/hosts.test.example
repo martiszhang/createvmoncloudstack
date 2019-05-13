@@ -1,0 +1,4 @@
+[all:vars]
+listneed=[{'name':'VM-POP-01','network_need':['POP-PreEnv-02','POP-PreEnv-03']},{'name':'VM-POP-02','network_need':['POP-PreEnv-02','POP-PreEnv-03']}]
+#listhad=[{'name':'VM-POP-01','network_had':['POP-PreEnv-01','POP-PreEnv-02','POP-PreEnv-03']},{'name':'VM-POP-02','network_had':['POP-PreEnv-02']}]
+listhad=[{'name':'VM-POP-01','network_had':['POP-PreEnv-01','POP-PreEnv-03']},{'name':'VM-POP-02','network_had':['POP-PreEnv-02']}]

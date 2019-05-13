@@ -1,0 +1,11 @@
+- hosts: 127.0.0.1
+  tasks:
+  - name: Ansible loop with index example
+    debug:
+      msg: "echo loop index at {{ index }} and value at {{ item }}"
+    loop:
+      - "hello1"
+      - "hello2"
+      - "hello3"
+    loop_control:
+     index_var: index

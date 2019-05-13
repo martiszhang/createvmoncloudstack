@@ -1,0 +1,11 @@
+{% for vm in list_vm_passwd_nics  %}
+{% set totalnics = [] %}
+{% if vm.nics|length == 0 %}
+{{ vm.name }}  {{ vm.publicip }} {{ vm.passwd }} 
+{% else %}
+{% for nic in vm.nics %}
+{% do totalnics.append(nic) %}
+{% endfor %}  
+{{ vm.name }}  {{ totalnics | join('     ') }}   {{ vm.publicip }} {{ vm.passwd }}
+{% endif %}
+{% endfor %}

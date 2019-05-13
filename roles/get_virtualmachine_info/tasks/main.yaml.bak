@@ -1,0 +1,37 @@
+---
+- name: get virtualmachine information for users
+#  shell: cloudmonkey list virtualmachines  name="{{ vpc_name }}-{{ item }}" | grep -w -E 'name|instancename|ipaddress|publicip'
+  cs_instance_facts:
+    name: "{{ vpc_name }}-{{ item }}" 
+  register: virtualmachine
+  loop: "{{groups['sdn']}}"
+
+- name: print cloudmonkeyout
+#  debug: msg="{{ virtualmachine.results }}"
+  set_fact: dict_virtual_name_id="{{ dict_virtual_name_id |default({})| combine( {item.item:item.id }) }}"
+  loop: "{{ virtualmachine.results }}"
+
+- name: print virtualmachine result
+  debug: msg="{{ dict_virtual_name_id }}"
+
+- name: get item passwd 
+  shell: cloudmonkey get vmpassword id="{{ item.value }}" | grep encryptedpassword | awk '{print $3}'
+  loop: "{{ dict_virtual_name_id | dict2items }}"
+  register: passwd
+
+- name: print value of passwd
+  set_fact: dict_virtual_name_passwd="{{ dict_virtual_name_passwd| default({})| combine( {item.item.key:item.stdout }) }} "
+  loop: "{{ passwd.results}}"
+
+- name: print var of dict_virtual_name_passwd
+  debug: msg="{{ dict_virtual_name_passwd }}"
+
+- name: get virtualmachine information for users
+  cs_instance_facts:
+    name: "{{ vpc_name }}-{{ item.key }}"
+  register: vmandpasswd
+  loop: "{{ dict_virtual_name_passwd | dict2items }}"
+
+- name: print vmandpasswd
+  debug: msg="{{ item.display_name }} == {{ item.instance_name }} == {{ item.item.value }} == {{item.default_ip}} == {{item.public_ip | default(0)}}"
+  loop: "{{ vmandpasswd.results }}"

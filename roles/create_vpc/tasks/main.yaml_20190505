@@ -1,0 +1,61 @@
+---
+- name: set cloudmonkey display format = default
+  shell: cloudmonkey set display default
+
+- name: get cloudstack zone info
+  shell: cloudmonkey  list zones filter=name | grep name | awk -F = '{print$2}'| awk '{print $1}'
+  register: shellresult
+
+- name: print shellresult
+  debug: msg="{{ shellresult.stdout_lines |first  }}"
+
+- name: set var zoneinfo
+  set_fact: zoneinfo={{ shellresult.stdout_lines |first }}
+
+- name: debug
+  debug: msg="{{ zoneinfo  }}"
+
+- name: create  vpc
+  local_action:
+    module: cs_vpc
+    name: "{{ vpc_name }}"
+    display_text: "{{ vpc_name }}"
+    cidr: "{{ vpc_cidr }}"
+    zone: "{{ zoneinfo }}"
+    vpc_offering: "Default VPC offering"
+
+
+
+- name: create vpc subnet
+#  debug: msg="{{ item.0 }}==={{ zoneinfo }}==={{ vpc_name }}==={{ item.1 }}==={{ vpc_subnet_mask }}"
+  local_action:
+    module: cs_network
+    name: "{{ item.0 }}"
+    zone: "{{ zoneinfo }}"
+    vpc: "{{ vpc_name }}"
+    network_offering: DefaultIsolatedNetworkOfferingForVpcNetworksNoLB
+    gateway: "{{ item.1|join('') }}"
+    netmask: "{{ vpc_subnet_mask }}" 
+    acl: default_allow
+  loop: "{{ vpc_subnet_name | zip(vpc_subnet_gw) | list}}"   
+  register: subnetinfo
+
+- name: debug
+  debug: msg="{{ subnetinfo }}"
+
+#- name: set variable  subnetwork_list
+#  set_fact: subnetwork_list=[]
+
+- name: get subnet id and name
+  set_fact: subnetwork_list="{{ subnetwork_list | default([]) }}  +  ["{{ item.name }}"] + ["{{ item.id }}" ] "
+#  set_fact: subnetwork_list="{{ subnetwork_list | default([]) }}  +  [{ "{{ item.name }}":"{{ item.id }}" }]" 
+  loop: "{{ subnetinfo.results }}"
+  loop_control:
+    index_var: index
+  when:  index  >= 1
+
+- name: print var subnetwork_list
+  debug: msg="{{ subnetwork_list }}"
+
+- name: copy subnetwork_list content to /tmp/subnetwork_info
+  copy: content="{{ subnetwork_list }}" dest=/tmp/subnetwork_info

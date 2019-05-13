@@ -1,0 +1,51 @@
+---
+- name: set cloudmonkey display format = default 
+  shell: cloudmonkey set display default 
+
+- name: get cloudstack zone info
+  shell: cloudmonkey  list zones filter=name | grep name | awk -F = '{print$2}'| awk '{print $1}' 
+  register: shellresult
+
+- name: print shellresult
+  debug: msg="{{ shellresult.stdout_lines |first  }}"
+
+- name: set var zoneinfo 
+  set_fact: zoneinfo={{ shellresult.stdout_lines |first }}
+
+- name: debug
+  debug: msg="{{ zoneinfo  }}"
+
+- name: get subnet info exclude vpc_subnet_name | first element 
+  set_fact: extra_subnets_info="{{ lookup('file','/tmp/subnetwork_info') }}"
+
+- name: debug
+  debug: msg="{{ extra_subnets_info }} "
+
+- name: create an instance 
+  cs_instance:
+    name: "{{vpc_name}}-{{ item }}"
+    display_name: "{{ vpc_name }}-{{ item }}"
+    template: "{{ template_name }}" 
+    service_offering: "{{ hostvars[item]['vm_service_offering'] }}" 
+    disk_offering: "{{ hostvars[item]['vm_disk_offering'] }}"
+    networks: "{{ hostvars[item]['vm_subnet_name'] |first }}" 
+    hypervisor: VMware
+    zone: "{{ zoneinfo }}" 
+  loop: "{{ groups['sdn'] }}" 
+  register: vminfo
+
+
+- name: print vminfo
+  set_fact: dict_vmname_vmid="{{ dict_vmname_vmid | default([]) }} + [{ 'name':"{{item.display_name}}",'id':"{{item.id}}",'network':{{hostvars[item.item]['vm_extra_nics'] | symmetric_difference(extra_subnets_info)}} }]"
+  loop: "{{ vminfo.results }}"
+  when: hostvars[item.item]['vm_extra_nics'] is defined
+
+
+- name: debug  var
+  debug: msg="{{ dict_vmname_vmid }}"
+
+- name: cloudmonkey add nic to vm if need
+  shell: cloudmonkey add nictovirtualmachine networkid="{{ item.1 }}" virtualmachineid="{{ item.0.id }}"
+  loop: "{{ dict_vmname_vmid | subelements('network') | list}}"
+  ignore_errors: true
+

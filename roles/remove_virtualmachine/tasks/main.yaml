@@ -1,0 +1,19 @@
+---
+- name: remove virtualmachines
+  cs_instance:
+    name: {{ item }}
+    state: absent
+  delegate_to: localhost
+  loop:
+    - controller-0
+    - controller-1
+    - controller-2
+    - database-0
+    - database-1
+    - vpp-0
+    - vpp-1
+    - zabbix-proxy-0
+    - elasticsearch-0
+    - elasticsearch-1
+    - elasticsearch-2
+    - kibana-0 

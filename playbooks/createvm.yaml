@@ -1,0 +1,11 @@
+- hosts: 127.0.0.1 
+  roles:
+#    - set_cloudmonkey
+#    - create_vpc
+#    - create_service_offering
+#    - create_disk_offering
+#    - create_virtualmachine
+#    - associate_ip 
+    - get_virtualmachine_info
+  environment:
+    CLOUDSTACK_CONFIG: /tmp/cloudstack.ini 

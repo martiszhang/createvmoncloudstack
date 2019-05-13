@@ -1,0 +1,9 @@
+- hosts: 127.0.0.1 
+  tasks:
+    - local_action:
+        module: cs_instance_nic
+        vm: z-CloudBackboneNetwork-ProdEnv-VM-Vpp-01 
+        network: z-CloudBackboneNetwork-ProdEnv-02 
+        vpc: z-CloudBackboneNetwork-ProdEnv
+  environment:
+    CLOUDSTACK_CONFIG: /tmp/cloudstack.ini 

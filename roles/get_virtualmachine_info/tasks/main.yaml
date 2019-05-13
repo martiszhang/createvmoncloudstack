@@ -1,0 +1,44 @@
+---
+- name: get virtualmachine information for users
+#  shell: cloudmonkey list virtualmachines  name="{{ vpc_name }}-{{ item }}" | grep -w -E 'name|instancename|ipaddress|publicip'
+  cs_instance_facts:
+    name: "{{ vpc_name }}-{{ item }}" 
+  register: virtualmachine
+  loop: "{{groups['sdn']}}"
+
+- name: set variable list vm info contain name id publicip
+#  debug: msg="{{ item.display_name }}=={{ item.id }}=={{item.instance_name}}=={{ item.public_ip | default(0)}} "
+  set_fact: list_vm_info="{{ list_vm_info |default([]) + [{'name':item.name,'id':item.id,'publicip':item.public_ip | default(0) }] }}"
+  loop: "{{ virtualmachine.results }}"
+
+- name: print virtualmachine result
+  debug: msg="{{ list_vm_info }}"
+
+- name: get item passwd 
+  shell: cloudmonkey get vmpassword id="{{ item.id }}" | grep encryptedpassword | awk '{print $3}'
+  loop: "{{ list_vm_info }}"
+  register: passwd
+
+- name: set variable list_vm_passwd_info contain contain name id publicip passwd 
+#  debug: msg="{{ passwd.results }}" 
+  set_fact: list_vm_passwd_info="{{ list_vm_passwd_info| default([])+ [{ 'name':item.item.name,'id':item.item.id,'publicip':item.item.publicip,'passwd':item.stdout }] }} "
+  loop: "{{ passwd.results}}"
+
+- name: print variable list_vm_passwd_info
+  debug: msg="{{ list_vm_passwd_info }}"
+
+- name: get item nic info
+  shell: cloudmonkey list virtualmachines  name="{{ item.name }}" | grep -w -E 'ipaddress' | awk '{print $3}'
+  loop: "{{ list_vm_passwd_info }}"
+  register: temp_list_vm_passwd
+
+- name: set variable list_vm_passwd_nics to contain name id publicip passwd nicip 
+#  debug: msg="{{ temp_list_vm_passwd }}"  
+  set_fact: list_vm_passwd_nics="{{list_vm_passwd_nics | default([]) + [{'name':item.item.name,'publicip':item.item.publicip,'nics':item.stdout_lines,'passwd':item.item.passwd }]}}"  
+  loop: "{{ temp_list_vm_passwd.results }}"
+
+- name: debug var list_vm_passwd_nics
+  debug: msg="{{ list_vm_passwd_nics }}"
+
+- name: copy vm info to /tmp
+  template: src=vminfo.j2 dest=/tmp/vminfo

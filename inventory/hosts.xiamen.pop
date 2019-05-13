@@ -1,0 +1,93 @@
+[all:vars]
+cloudstackpoolinfo={'name':'xiamen','url':'http://192.168.191.155:8080/client/api','username':'admin','password':'rnmzCFGjm1%EdtrF','verifysslcert':'false','apikey': 'ZJx-q2VgRQLb0BfFUkXhFVkLXMZRyHC2NyorvgR9AE8qbJ6Q8RCicSyZhfJa4Sz0u4V0qFgI4cBsgl5OELrb9w','secretkey': 'Fg928fv0oY9ycg0heo08xrgmYhzEXu8vw7WNm4mtd4ecRg3vsyeW0fJNZJeklb2Z3uroyk16NXmmts8-C4g5nw'}
+
+
+vpc_name=POP-PreEnv
+vpc_cidr='172.16.0.0/16'
+vpc_subnet_name=["{{vpc_name}}-01","{{vpc_name}}-02","{{vpc_name}}-03"]
+vpc_subnet_gw=['172.16.1.254','172.16.2.254','172.16.3.254']
+vpc_subnet_mask=255.255.255.0
+
+template_name="COC-Centos72x64-40G-S-20170421"
+need_public_ip=1
+
+[sdn:children]
+controllers
+#databases
+#vpps
+#zabbix
+#elasticsearches
+#kibana
+
+[controllers]
+VM-POP-01 vm_service_offering=8C16G  vm_extra_nics='["{{vpc_name}}-02","{{vpc_name}}-03"]' need_public_ip=1
+VM-POP-02 vm_service_offering=1C1G   
+VM-POP-03 vm_service_offering=1C1G
+
+[controllers:vars]
+vm_subnet_name=["{{vpc_name}}-01"]
+vm_disk_offering=100G
+
+[databases]
+VM-Database-01 
+VM-Database-02 
+
+[databases:vars]
+subnet_name=["z-CloudBackboneNetwork-ProdEnv-01"]
+vm_service_offering=8C16G
+vm_disk_offering=500G
+need_public_ip=1
+
+
+
+[vpps]
+VM-Vpp-01  
+VM-Vpp-02
+
+[vpps:vars]
+vm_subnet_name=["z-CloudBackboneNetwork-ProdEnv-01"]
+vm_service_offering=8C16G
+vm_disk_offering=100G
+vm_extra_nics=['z-CloudBackboneNetwork-ProdEnv-02','z-CloudBackboneNetwork-ProdEnv-03']
+need_public_ip=1
+
+[zabbix]
+VM-Zabbix-Proxy-01
+
+[zabbix:vars]
+vm_subnet_name=['z-CloudBackboneNetwork-ProdEnv-01']
+vm_service_offering=8C16G
+vm_disk_offering=100G
+need_public_ip=1
+
+[elasticsearches] 
+VM-Elasticsearch-01
+VM-Elasticsearch-02
+VM-Elasticsearch-03
+[elasticsearches:vars]
+vm_subnet_name=['z-CloudBackboneNetwork-ProdEnv-01'] 
+vm_service_offering=8C16G
+vm_disk_offering=500G
+need_public_ip=1
+
+[kibana]
+VM-Kibana-01
+[kibana:vars]
+vm_subnet_name=['z-CloudBackboneNetwork-ProdEnv-01']
+vm_service_offering=8C16G
+vm_disk_offering=100G
+need_public_ip=1
+
+
+
+
+
+
+#vpcinfo=[{'name':'z-CloudBackboneNetwork-ProdEnv','cidr':'10.1.0.0/16','subnet':"{{ range(3)|list }}"},{'name':'z-CloudBackboneNetwork-PreEnv','cidr':'10.2.0.0/16','subnet':"{{ range(3)|list }}"}]
+vpcinfo=[{'name':'z-CloudBackboneNetwork-ProdEnv','cidr':'10.1.0.0/16','subnet':"{{ range(3)|list }}"}]
+
+#vms=[{'name':'controller','service_offering': '8C16G','disk': '100G','number': "{{ range(3) | list }}" },{'name': 'database','service_offering': '8C16G','disk': '200G','number': "{{ range(2) | list}}"},{'name': 'vpp','service_offering': '8C16G','disk': '200G','number': "{{ range(2) | list}}"},{'name': 'zabbix-proxy','service_offering': '8C16G','disk': '200G','number': "{{ range(1) | list}}"},{'name': 'elasticsearch','service_offering': '8C16G','disk': '500G','number': "{{ range(3) | list}}"},{'name': 'kibana','service_offering': '8C16G','disk': '200G','number': "{{ range(1) | list}}"}]
+
+#vms=[{'name':'controller','service_offering':{'cpu':8,'mem':16},'disk': '100G','number': "{{ range(3) | list }}" },{'name': 'database','service_offering':{'cpu':8,'mem':16},'disk': '200G','number': "{{ range(2) | list}}"},{'name': 'vpp','service_offering': {'cpu':8,'mem':16},'disk': '200G','number': "{{ range(2) | list}}"},{'name': 'zabbix-proxy','service_offering': {'cpu':8,'mem':16},'disk': '200G','number': "{{ range(1) | list}}"},{'name': 'elasticsearch','service_offering': {'cpu':8,'mem':16},'disk': '500G','number': "{{ range(3) | list}}"},{'name': 'kibana','service_offering':{'cpu':8,'mem':16},'disk': '200G','number': "{{ range(1) | list}}"} ]
+#vms=[{'name': 'test-kibana','service_offering':{'cpu':8,'mem':16},'disk': '200G','number': "{{ range(1) | list}}"} ]
+template_name='DS-Centos75x64-100G-S-20180903'

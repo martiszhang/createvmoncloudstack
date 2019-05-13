@@ -1,0 +1,54 @@
+---
+- name: get virtualmachines public ip info
+  shell:  cloudmonkey list virtualmachines name="{{ vpc_name }}-{{ item }}" | grep -w publicip | cat
+  loop: "{{ groups['sdn'] }}"
+  when: hostvars[item]['need_public_ip'] == 1
+  register: cloudmonkeyipinfo
+  
+
+- name: print cloudmonkeyipinfo
+  set_fact: list_publicip="{{ list_publicip | default([]) }} + [{ 'name':"{{item.item}}",'publicip':{{ item.stdout_lines | default(0)}} }]" 
+#  debug: msg="{{ cloudmonkeyipinfo.results }}"
+  loop: "{{ cloudmonkeyipinfo.results }}"
+
+- name: debug 
+  debug: msg="{{ list_publicip }}"  
+
+- name: select publicip = empty vm
+#  debug: msg="{{  item.name }}"
+#  when: item.publicip == []
+  set_fact: list_nopublicvm="{{ list_nopublicvm | default([]) }} + ["{{ item.name }}"]"
+  loop: "{{ list_publicip }}"
+  when: item.publicip == []
+
+- name: debug
+  debug: msg="{{ list_nopublicvm }}"
+  when: list_nopublicvm is defined and list_nopublicvm | length != 0
+
+- name: Associate an IP address
+  cs_ip_address:
+    vpc: "{{ vpc_name }}"
+    network: "{{ vpc_subnet_name |first | join('') }}"
+  loop: "{{ range(list_nopublicvm |length)|list  }}"
+  register: ip_address
+  when: list_nopublicvm is defined and list_nopublicvm | length != 0
+
+- name: debug ip_address
+#  debug: msg="{{ ip_address.results | selectattr('ip_address')| map(attribute='ip_address')|list }}"
+  set_fact: list_pip="{{ ip_address.results | selectattr('ip_address')| map(attribute='ip_address')|list }}"
+  when: list_nopublicvm is defined and list_nopublicvm | length != 0
+
+
+- name: debug list_pip
+  debug: msg="{{ list_pip }}"
+  when: list_nopublicvm is defined and list_nopublicvm | length != 0
+
+
+- name: bind public ip to hosts
+  cs_staticnat:
+    ip_address: "{{ item.0 }}"
+    vm: "{{ vpc_name }}-{{ item.1 }}"
+    vpc: "{{ vpc_name }}"
+    network: "{{ vpc_subnet_name | first| join('') }}"
+  loop: "{{ list_pip | zip(list_nopublicvm) | list }}"
+  when: list_nopublicvm is defined and list_nopublicvm | length != 0 

@@ -1,0 +1,8 @@
+---
+- hosts: 127.0.0.1
+  tasks:
+    - name: print index and value
+      debug: msg="{{ index + 1 }} ===> {{item.0}}===>{{ item.1 }}"
+      loop: "{{ ['zhang','jun','feng'] | product([1,2,3,4]) | list  }}"
+      loop_control:
+        index_var: index

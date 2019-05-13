@@ -1,0 +1,18 @@
+---
+- name: Associate an IP address
+  cs_ip_address:
+    vpc: "{{ vpc_name }}"
+    network: "{{ vpc_subnet_name |first | join('') }}"
+  loop: "{{ groups['sdn']  }}"
+  when:  hostvars[item]['need_public_ip'] == 1
+  register: ip_address
+
+- name: set_fact
+  set_fact: ip_list=[]
+
+- name: print ip_address
+  set_fact: ip_list="{{ ip_list }}+[ '{{ item.ip_address }}' ]"
+  loop: "{{ ip_address.results }}"
+
+- name: copy ip_list contents to file
+  copy: content="{{ ip_list }}"  dest=/tmp/ip_list.info

@@ -1,0 +1,64 @@
+- hosts: 127.0.0.1
+  tasks:
+   - name: get cloudstack facts
+     cs_facts: filter=cloudstack_availability_zone
+     register: csfacts
+
+   - name: debug
+     debug: msg="{{ csfacts}}"
+
+#  - name: create a vpc 
+#    local_action:
+#      module: cs_vpc
+#      name: "{{ item }}"
+#      display_text: "{{ item }}" 
+#      cidr: 192.168.0.0/16
+#      zone: HXA.public.vr.zone01
+#      vpc_offering: "Default VPC offering"
+#    loop:
+#      - CloudBackboneNetwork-ProdEnv
+#      - CloudBackboneNetwork-PreEnv 
+
+#  - name: Create a VPC tier CloudBackboneNetwork-ProdEnv
+#    local_action:
+#      module: cs_network
+#      name: "{{ item }}"
+#      zone: HXA.public.vr.zone01
+#      vpc: "{{ item }}"
+#      network_offering: DefaultIsolatedNetworkOfferingForVpcNetworks
+#      gateway: 192.168.0.1
+#      netmask: 255.255.255.0
+#      acl: default_allow
+#    loop:
+#      - CloudBackboneNetwork-ProdEnv
+#      - CloudBackboneNetwork-PreEnv
+
+#  - name: Create a disk offering 200GB
+#    local_action:
+#      module: cs_disk_offering
+#      name: 200GB
+#      display_text: 200GB
+#      disk_size: 200
+#      storage_type: shared
+
+#  - name: create an instance 
+#    cs_instance:
+#      name: "{{ item }}"
+#      display_name: "{{ item }}"
+#      template: DS-Centos75x64-100G-S-20180903
+#      service_offering: cloudstack.cpu-8-ram-16384-disk-0-500-None
+#      disk_offering: 200GB 
+#      networks: CloudBackboneNetwork-ProdEnv 
+#      hypervisor: VMware
+#      zone: HXA.public.vr.zone01
+#    delegate_to: localhost
+#    loop:
+#      - vm-controller-02
+##      - pre-vm-database-00
+##      - pre-vm-database-01
+##      - pre-vm-vpp-00
+#      - pre-vm-vpp-01
+#    register: instance
+
+#  - name: debug
+#    debug: msg={{ instance }}

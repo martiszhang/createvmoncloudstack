@@ -1,0 +1,13 @@
+{% set test = [] %}
+{% for i in listneed %}
+    {% for k in listhad %}
+        {% if i.name == k.name %}
+            {% for n in i.network_need %}
+                {% if n not in k.network_had %}
+                     {% do test.append({i.name:n}) %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+{% endfor %}
+{{ test }}

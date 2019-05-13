@@ -1,0 +1,18 @@
+---
+- hosts: 127.0.0.1
+  tasks:
+    - name: debug list 
+      debug: msg="{{ listneed }}"
+
+    - name: debug
+      debug: msg="{{ listhad }}"
+    - name: print 
+      template: src=./test.txt.j2 dest=/tmp/test.txt
+
+    - name: set fact
+      #set_fact: test="{% set testzhang = [] %} {% for i in listneed %}{% for k in listhad %}{% if i.name == k.name %}{% for n in i.network_need %}{% if n not in k.network_had %} [{'{{i.name }}':'{{n}}'}]{% endif %}{% endfor %}{% endif %}{% endfor %}{% endfor %}" 
+      set_fact:
+        testxx: >-
+          {% set test = [] %}{% for i in listneed %}{% for k in listhad %}{% if i.name == k.name %}{% for n in i.network_need %}{% if n not in k.network_had %}{% do test.append({i.name:n}) %}{% endif %}{% endfor %}{% endif %}{% endfor %}{% endfor %}{{ test }} 
+    - name: debug 
+      debug: msg="{{ testxx  }}"

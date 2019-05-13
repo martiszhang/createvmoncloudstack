@@ -1,0 +1,22 @@
+---
+- name: intall cloudmonkey 
+  pip:
+    name: cloudmonkey
+    state: present
+
+- name: set xiongan profile 
+  shell: "{{ item }}"
+  loop:
+    - cloudmonkey set profile "{{ cloudstackpoolinfo.name }}"
+    - cloudmonkey set url "{{ cloudstackpoolinfo.url }}"
+    - cloudmonkey set username "{{ cloudstackpoolinfo.username }}"
+    - cloudmonkey set password "{{ cloudstackpoolinfo.password }}"
+    - cloudmonkey set verifysslcert "{{ cloudstackpoolinfo.verifysslcert }}"
+#    - cloudmonkey set apikey "{{ cloudstackpoolinfo.apikey }}"
+#    - cloudmonkey set secretkey "{{ cloudstackpoolinfo.secretkey }}"
+    - cloudmonkey sync 
+
+- name: copy cloudstack.ini file to /tmp
+  template: src=cloudstack.ini.j2 dest=/tmp/cloudstack.ini  owner=root group=root mode=0644
+
+
