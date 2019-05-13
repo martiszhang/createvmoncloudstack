@@ -1,0 +1,2 @@
+# createvmoncloudstack
+在cloudstack上创建虚拟机
